@@ -20,9 +20,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,83 +34,38 @@ public class ContactsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_contacts, container, false);
+        ListView contactsList = (ListView) view.findViewById(R.id.contacts_list);
 
-        return inflater.inflate(R.layout.fragment_contacts, container, false);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        getContacts();
-    }
-
-    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public void getContacts() {
-        // from https://stackoverflow.com/questions/26804387/android-fetch-all-contact-list-name-email-phone-takes-more-then-a-minute-for/26820544
-        List<Contact> list = new LinkedList<Contact>();
-        LongSparseArray<Contact> array = new LongSparseArray<Contact>();
-
-        String[] projection = {
-                ContactsContract.Data.MIMETYPE,
-                ContactsContract.Data.CONTACT_ID,
-                ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.CommonDataKinds.Contactables.DATA,
-                ContactsContract.CommonDataKinds.Contactables.TYPE,
-        };
-        String selection = ContactsContract.Data.MIMETYPE + " in (?, ?)";
-        String[] selectionArgs = {
-                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE,
-                ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
-        };
-        String sortOrder = ContactsContract.Contacts.SORT_KEY_ALTERNATIVE;
-
-        //Uri uri = ContactsContract.CommonDataKinds.Contactables.CONTENT_URI;
-        Uri uri = ContactsContract.Data.CONTENT_URI;
-// we could also use Uri uri = ContactsContract.Data.CONTENT_URI;
-
-// ok, let's work...
-        Cursor cursor = getActivity().getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-
-        final int mimeTypeIdx = cursor.getColumnIndex(ContactsContract.Data.MIMETYPE);
-        final int idIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
-        final int nameIdx = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
-        final int dataIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Contactables.DATA);
-        final int typeIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Contactables.TYPE);
-
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(idIdx);
-            Contact contact = array.get(id);
-            if (contact == null) {
-                contact = new Contact();
-                contact.setContactId(id);
-                contact.setContactName(cursor.getString(nameIdx));
-                array.put(id, contact);
-                list.add(contact);
-            }
-            int type = cursor.getInt(typeIdx);
-            Log.d("TYPE", String.valueOf(type));
-            String data = cursor.getString(dataIdx);
-            Log.d("DATA", data);
-            String mimeType = cursor.getString(mimeTypeIdx);
-            Log.d("MIME_TYPE", mimeType);
-            if (mimeType.equals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
-                // mimeType == ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-                if (contact.getContactEmailAddress() == null) {
-                    contact.setContactEmailAddress(data);
-                }
-            } else {
-                // mimeType == ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
-                if (contact.getContactPhoneNumber() == null) {
-                    contact.setContactPhoneNumber(data);
-                }
-            }
-        }
-        cursor.close();
-
+        MainActivity activity = (MainActivity) getActivity();
+        final ArrayList<Contact> list = activity.getContactList();
 
         for (Contact c : list) {
             Log.d("LIST", c.toString());
         }
 
+        ContactAdapter adapter = new ContactAdapter(getContext(), list);
+        ListView listView = (ListView) view.findViewById(R.id.contacts_list);
+        listView.setAdapter(adapter);
+         // try this https://stackoverflow.com/questions/3630468/android-custom-listview-setonitemselectedlistener-not-working
+        // xml based on https://stackoverflow.com/questions/5939392/android-checkable-listview
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CheckBox checkBox = (CheckBox) view.findViewById(R.id.contact_chackbox);
+                if (!checkBox.isChecked()) {
+                    checkBox.setChecked(true);
+                    Log.d("CHECKBOX", "true " + String.valueOf(checkBox.isChecked()));
+                } else {
+                    checkBox.setChecked(false);
+                    Log.d("CHECKBOX", "false " + String.valueOf(checkBox.isChecked()));
+                }
+                String name = ((TextView)view.findViewById(R.id.contact_name)).getText().toString();
+                String actualName = list.get((int) id).getContactName();
+                Log.d("ITEM SELECTED", name + " " + actualName);
+            }
+        });
+
+        return view;
     }
 }
