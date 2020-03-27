@@ -139,4 +139,13 @@ public class MainActivity extends AppCompatActivity {
     public ArrayList<Contact> getContactList() {
         return contactList;
     }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        for (Contact c : contactList) {
+            Log.d("LIST", c.toString());
+        }
+    }
 }

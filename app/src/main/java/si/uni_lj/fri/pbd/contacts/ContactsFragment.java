@@ -32,33 +32,31 @@ import java.util.List;
 
 public class ContactsFragment extends Fragment {
 
+    private ArrayList<Contact> list;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_contacts, container, false);
         ListView contactsList = (ListView) view.findViewById(R.id.contacts_list);
 
         MainActivity activity = (MainActivity) getActivity();
-        final ArrayList<Contact> list = activity.getContactList();
-
-        for (Contact c : list) {
-            Log.d("LIST", c.toString());
-        }
+        list = activity.getContactList();
 
         ContactAdapter adapter = new ContactAdapter(getContext(), list);
         ListView listView = (ListView) view.findViewById(R.id.contacts_list);
         listView.setAdapter(adapter);
-         // try this https://stackoverflow.com/questions/3630468/android-custom-listview-setonitemselectedlistener-not-working
+        // try this https://stackoverflow.com/questions/3630468/android-custom-listview-setonitemselectedlistener-not-working
         // xml based on https://stackoverflow.com/questions/5939392/android-checkable-listview
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 CheckBox checkBox = (CheckBox) view.findViewById(R.id.contact_chackbox);
                 if (!checkBox.isChecked()) {
+                    list.get((int) id).setContactState(true);
                     checkBox.setChecked(true);
-                    Log.d("CHECKBOX", "true " + String.valueOf(checkBox.isChecked()));
                 } else {
+                    list.get((int) id).setContactState(false);
                     checkBox.setChecked(false);
-                    Log.d("CHECKBOX", "false " + String.valueOf(checkBox.isChecked()));
                 }
                 String name = ((TextView)view.findViewById(R.id.contact_name)).getText().toString();
                 String actualName = list.get((int) id).getContactName();

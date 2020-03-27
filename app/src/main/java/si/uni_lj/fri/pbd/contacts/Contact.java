@@ -7,6 +7,7 @@ public class Contact {
     private String contactName;
     private String contactEmailAddress;
     private String contactPhoneNumber;
+    private boolean contactState;
 
     public Contact() {
         this.contactName = null;
@@ -56,6 +57,15 @@ public class Contact {
         if (contactEmailAddress != null) {
             builder.append(" " + contactEmailAddress);
         }
+        builder.append(" Selected: " + String.valueOf(contactState));
         return builder.toString();
+    }
+
+    public boolean getContactState() {
+        return contactState;
+    }
+
+    public void setContactState(boolean contactState) {
+        this.contactState = contactState;
     }
 }
